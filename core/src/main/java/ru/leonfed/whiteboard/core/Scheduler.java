@@ -11,6 +11,15 @@ public class Scheduler {
     private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(8);
 
     public static void scheduleTask(Runnable task, Duration period) {
-        scheduler.scheduleWithFixedDelay(task, DEFAULT_INITIAL_DELAY, period.toMillis(), TimeUnit.MILLISECONDS);
+        Runnable modifiedTask = () -> {
+            try {
+                task.run();
+            } catch (Throwable throwable) {
+                //TODO use logging instead
+                throwable.printStackTrace();
+            }
+        };
+
+        scheduler.scheduleWithFixedDelay(modifiedTask, DEFAULT_INITIAL_DELAY, period.toMillis(), TimeUnit.MILLISECONDS);
     }
 }
