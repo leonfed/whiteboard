@@ -1,13 +1,17 @@
 package ru.leonfed.whiteboard.core.model;
 
-public abstract class PaintShape {
-    protected final int id;
+import java.awt.*;
 
-    protected PaintShape(int id) {
+public abstract class PaintShape {
+    protected final String id;
+
+    protected PaintShape(String id) {
         this.id = id;
     }
 
-    public int getId() {
+    public String getId() {
         return id;
     }
+
+    public abstract Shape toViewShape();
 }

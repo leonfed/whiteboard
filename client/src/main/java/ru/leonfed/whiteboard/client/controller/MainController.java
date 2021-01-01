@@ -1,4 +1,4 @@
-package ru.leonfed.whiteboard.client;
+package ru.leonfed.whiteboard.client.controller;
 
 import ru.leonfed.whiteboard.core.model.PaintShape;
 

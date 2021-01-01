@@ -10,7 +10,7 @@ public class Scheduler {
     private static final long DEFAULT_INITIAL_DELAY = 100;
     private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(8);
 
-    static void scheduleTask(Runnable task, Duration period) {
+    public static void scheduleTask(Runnable task, Duration period) {
         scheduler.scheduleWithFixedDelay(task, DEFAULT_INITIAL_DELAY, period.toMillis(), TimeUnit.MILLISECONDS);
     }
 }

@@ -1,10 +1,12 @@
-package ru.leonfed.whiteboard.client;
+package ru.leonfed.whiteboard.client.storage;
 
 import ru.leonfed.whiteboard.core.model.PaintShape;
+
+import java.util.List;
 
 public interface PaintShapesStorage {
 
     void addShape(PaintShape shape);
 
-    void getAllShapesCopy();
+    List<PaintShape> getAllShapesCopy();
 }

@@ -1,20 +1,28 @@
 package ru.leonfed.whiteboard.core.model;
 
+import java.awt.*;
+import java.awt.geom.Line2D;
+
 public class PaintLine extends PaintShape {
-    private final Point start;
-    private final Point end;
+    private final Point point1;
+    private final Point point2;
 
-    public PaintLine(int id, Point start, Point end) {
+    public PaintLine(String id, Point point1, Point point2) {
         super(id);
-        this.start = start;
-        this.end = end;
+        this.point1 = point1;
+        this.point2 = point2;
     }
 
-    public Point getStart() {
-        return start;
+    public Point getPoint1() {
+        return point1;
     }
 
-    public Point getEnd() {
-        return end;
+    public Point getPoint2() {
+        return point2;
+    }
+
+    @Override
+    public Shape toViewShape() {
+        return new Line2D.Double(point1.getX(), point1.getY(), point2.getX(), point2.getY());
     }
 }
