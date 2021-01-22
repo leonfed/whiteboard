@@ -14,7 +14,7 @@ public class ShapeConverter {
         return new Point(point2D.getX(), point2D.getY());
     }
 
-    static PaintShape convertLine(Line2D line2D) {
+    static PaintLine convertLine(Line2D line2D) {
         String id = UUID.randomUUID().toString();
         Point point1 = convertPoint(line2D.getP1());
         Point point2 = convertPoint(line2D.getP2());
