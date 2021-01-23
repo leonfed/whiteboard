@@ -10,9 +10,7 @@ public class WhiteboardDaoImpl implements WhiteboardDao {
 
     @Override
     public String createWhiteboard() {
-        //todo generate id
-        //String whiteboardId = UUID.randomUUID().toString();
-        String whiteboardId = "123";
+        String whiteboardId = UUID.randomUUID().toString();
         users.put(whiteboardId, new ArrayList<>());
         return whiteboardId;
     }

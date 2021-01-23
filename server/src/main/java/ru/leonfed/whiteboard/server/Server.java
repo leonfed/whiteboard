@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 public class Server {
+    //todo make it argument of initializer
     private static final String HOSTNAME = "localhost";
     private static final int PORT = 8080;
     private static final int BACKLOG = 10;
