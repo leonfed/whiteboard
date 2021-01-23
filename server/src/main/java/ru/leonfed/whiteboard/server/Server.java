@@ -4,7 +4,6 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import org.apache.commons.io.IOUtils;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import ru.leonfed.whiteboard.core.model.JsonConverter;
@@ -21,9 +20,6 @@ import java.util.List;
 import java.util.Map;
 
 public class Server {
-    //todo make it argument of initializer
-    private static final String HOSTNAME = "localhost";
-    private static final int PORT = 8080;
     private static final int BACKLOG = 10;
 
     private static final String WHITEBOARD_PARAM = "whiteboard";
@@ -35,9 +31,9 @@ public class Server {
     private final WhiteboardService whiteboardService;
     private final HttpServer server;
 
-    public Server(WhiteboardService whiteboardService) throws IOException {
+    public Server(String hostname, int port, WhiteboardService whiteboardService) throws IOException {
         this.whiteboardService = whiteboardService;
-        this.server = HttpServer.create(new InetSocketAddress(HOSTNAME, PORT), BACKLOG);
+        this.server = HttpServer.create(new InetSocketAddress(hostname, port), BACKLOG);
         server.createContext("/whiteboard/create", new CreateWhiteboardHandler());
         server.createContext("/whiteboard/join", new JoinWhiteboardHandler());
         server.createContext("/shapes/get", new GetShapesHandler());

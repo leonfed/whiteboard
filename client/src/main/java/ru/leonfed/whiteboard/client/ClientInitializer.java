@@ -1,5 +1,6 @@
 package ru.leonfed.whiteboard.client;
 
+import org.apache.commons.lang.StringUtils;
 import org.json.JSONException;
 import ru.leonfed.whiteboard.client.controller.MainController;
 import ru.leonfed.whiteboard.client.controller.MainControllerImpl;
@@ -21,34 +22,63 @@ public class ClientInitializer {
     static final int DEFAULT_WIDTH = 500;
     static final int DEFAULT_HEIGHT = 500;
 
-    //todo move it to argument
-    static final String url = "http://localhost:8080";
+    static void printUsageMessage() {
+        System.out.println("Usage arguments:\n <server-hostname> <server-port> create\n <server-hostname> <server-port> join <whiteboard-id>");
+    }
 
-    //todo catch exceptions
-    public static void main(String[] args) throws IOException, JSONException {
-        System.out.println("It does something :|");
+    public static void main(String[] args) {
+        String serverHostname;
+        int serverPort;
+        String whiteboardId = null;
 
-        WhiteboardHttpClient whiteboardHttpClient = new WhiteboardHttpClientImpl(url);
-        if (args.length >= 1 && args[0].equals("create")) {
-            whiteboardHttpClient.createWhiteboard();
-        } else if (args.length >= 2 && args[0].equals("join")) {
-            String whiteboardId = args[1];
-            whiteboardHttpClient.joinToWhiteboard(whiteboardId);
+        if (args.length >= 1 && args[0] != null) {
+            serverHostname = args[0];
         } else {
-            System.out.println("Incorrect arguments");
+            System.out.println("First argument must be server hostname");
+            printUsageMessage();
+            return;
+        }
+        if (args.length >= 2 && args[1] != null && StringUtils.isNumeric(args[1])) {
+            serverPort = Integer.parseInt(args[1]);
+        } else {
+            System.out.println("Second argument must be server port");
+            printUsageMessage();
             return;
         }
 
-        View view = new ViewImpl(DEFAULT_WIDTH, DEFAULT_HEIGHT);
-        PaintShapesStorage paintShapesStorage = new PaintShapesStorageImpl();
-        MainController mainController = new MainControllerImpl(view, paintShapesStorage, whiteboardHttpClient);
+        if (args.length >= 4 && "join".equals(args[2])) {
+            whiteboardId = args[3];
+        } else if (args.length < 3 || !"create".equals(args[2])) {
+            System.out.println("Incorrect mode");
+            printUsageMessage();
+            return;
+        }
 
-        RefreshViewTask refreshViewTask = new RefreshViewTask(mainController);
-        Scheduler.scheduleTask(refreshViewTask, Duration.ofMillis(50));
+        String url = "http://" + serverHostname + ":" + serverPort;
 
-        SyncingShapesTask syncingShapesTask = new SyncingShapesTask(mainController);
-        Scheduler.scheduleTask(syncingShapesTask, Duration.ofSeconds(1));
+        System.out.println("Start client...");
 
-        view.setVisible(true);
+        try {
+            WhiteboardHttpClient whiteboardHttpClient = new WhiteboardHttpClientImpl(url);
+
+            if (whiteboardId == null) {
+                whiteboardHttpClient.createWhiteboard();
+            } else {
+                whiteboardHttpClient.joinToWhiteboard(whiteboardId);
+            }
+            View view = new ViewImpl(DEFAULT_WIDTH, DEFAULT_HEIGHT);
+            PaintShapesStorage paintShapesStorage = new PaintShapesStorageImpl();
+            MainController mainController = new MainControllerImpl(view, paintShapesStorage, whiteboardHttpClient);
+
+            RefreshViewTask refreshViewTask = new RefreshViewTask(mainController);
+            Scheduler.scheduleTask(refreshViewTask, Duration.ofMillis(50));
+
+            SyncingShapesTask syncingShapesTask = new SyncingShapesTask(mainController);
+            Scheduler.scheduleTask(syncingShapesTask, Duration.ofSeconds(1));
+
+            view.setVisible(true);
+        } catch (JSONException | IOException e) {
+            e.printStackTrace();
+        }
     }
 }
