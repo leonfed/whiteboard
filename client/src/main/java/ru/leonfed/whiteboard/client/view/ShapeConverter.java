@@ -1,7 +1,6 @@
 package ru.leonfed.whiteboard.client.view;
 
 import ru.leonfed.whiteboard.core.model.PaintLine;
-import ru.leonfed.whiteboard.core.model.PaintShape;
 import ru.leonfed.whiteboard.core.model.Point;
 
 import java.awt.geom.Line2D;

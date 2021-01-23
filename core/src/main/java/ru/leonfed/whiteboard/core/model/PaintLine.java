@@ -1,5 +1,8 @@
 package ru.leonfed.whiteboard.core.model;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.awt.*;
 import java.awt.geom.Line2D;
 
@@ -24,5 +27,14 @@ public class PaintLine extends PaintShape {
     @Override
     public Shape toViewShape() {
         return new Line2D.Double(point1.getX(), point1.getY(), point2.getX(), point2.getY());
+    }
+
+    @Override
+    public JSONObject toJson() throws JSONException {
+        return new JSONObject()
+                .put("type", "line")
+                .put("id", id)
+                .put("point1", point1.toJson())
+                .put("point2", point2.toJson());
     }
 }

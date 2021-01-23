@@ -20,13 +20,13 @@ public class PaintShapesStorageImplTest {
 
 
     @Test
-    public void addShapesAndGetCopy() {
+    public void getAllShapes() {
         PaintShape shape1 = ModelGenerators.generatePaintShape();
         PaintShape shape2 = ModelGenerators.generatePaintShape();
-        paintShapesStorage.addShape(shape1);
-        paintShapesStorage.addShape(shape2);
+        paintShapesStorage.addShape(shape1, true);
+        paintShapesStorage.addShape(shape2, false);
 
-        List<PaintShape> actualShapes = paintShapesStorage.getAllShapesCopy();
+        List<PaintShape> actualShapes = paintShapesStorage.getAllShapes();
         assertThat(actualShapes).containsExactlyInAnyOrder(shape1, shape2);
     }
 }
