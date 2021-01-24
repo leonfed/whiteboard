@@ -44,7 +44,7 @@ public class Server {
         httpServer.start();
     }
 
-    private class CreateWhiteboardHandler implements HttpHandler {
+    public class CreateWhiteboardHandler implements HttpHandler {
 
         @Override
         public void handle(HttpExchange httpExchange) throws IOException {
@@ -66,7 +66,7 @@ public class Server {
         }
     }
 
-    private class JoinWhiteboardHandler implements HttpHandler {
+    public class JoinWhiteboardHandler implements HttpHandler {
 
         @Override
         public void handle(HttpExchange httpExchange) throws IOException {
@@ -90,7 +90,7 @@ public class Server {
         }
     }
 
-    private class GetShapesHandler implements HttpHandler {
+    public class GetShapesHandler implements HttpHandler {
 
         @Override
         public void handle(HttpExchange httpExchange) throws IOException {
@@ -116,7 +116,7 @@ public class Server {
         }
     }
 
-    private class AddShapesHandler implements HttpHandler {
+    public class AddShapesHandler implements HttpHandler {
 
         @Override
         public void handle(HttpExchange httpExchange) throws IOException {
