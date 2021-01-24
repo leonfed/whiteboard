@@ -6,10 +6,12 @@ import com.sun.net.httpserver.HttpServer;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
+import ru.leonfed.whiteboard.core.logging.Logger;
+import ru.leonfed.whiteboard.core.logging.LoggerFactory;
 import ru.leonfed.whiteboard.core.model.JsonConverter;
 import ru.leonfed.whiteboard.core.model.PaintShape;
 import ru.leonfed.whiteboard.server.service.WhiteboardService;
-import ru.leonfed.whiteboard.server.utils.HttpUtils;
+import ru.leonfed.whiteboard.server.http.HttpUtils;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -22,47 +24,42 @@ import java.util.Map;
 public class Server {
     private static final int BACKLOG = 10;
 
-    private static final String WHITEBOARD_PARAM = "whiteboard";
-    private static final String USER_PARAM = "user";
-    private static final String AFTER_PARAM = "after";
-
     private static final Charset CHARSET = StandardCharsets.UTF_8;
 
+    static Logger log = LoggerFactory.logger(Server.class);
+
     private final WhiteboardService whiteboardService;
-    private final HttpServer server;
+    private final HttpServer httpServer;
 
     public Server(String hostname, int port, WhiteboardService whiteboardService) throws IOException {
         this.whiteboardService = whiteboardService;
-        this.server = HttpServer.create(new InetSocketAddress(hostname, port), BACKLOG);
-        server.createContext("/whiteboard/create", new CreateWhiteboardHandler());
-        server.createContext("/whiteboard/join", new JoinWhiteboardHandler());
-        server.createContext("/shapes/get", new GetShapesHandler());
-        server.createContext("/shapes/add", new AddShapesHandler());
+        this.httpServer = HttpServer.create(new InetSocketAddress(hostname, port), BACKLOG);
+        httpServer.createContext("/whiteboard/create", new CreateWhiteboardHandler());
+        httpServer.createContext("/whiteboard/join", new JoinWhiteboardHandler());
+        httpServer.createContext("/shapes/get", new GetShapesHandler());
+        httpServer.createContext("/shapes/add", new AddShapesHandler());
     }
 
     void start() {
-        server.start();
+        httpServer.start();
     }
 
     private class CreateWhiteboardHandler implements HttpHandler {
 
         @Override
-        public void handle(HttpExchange httpExchange) {
+        public void handle(HttpExchange httpExchange) throws IOException {
+            log.debug("Start handle request by CreateWhiteboardHandler");
+
             try {
                 String whiteboardId = whiteboardService.createWhiteboard();
                 String userId = whiteboardService.joinToWhiteboard(whiteboardId);
 
-                //TODO use logging
-                System.out.println("Create whiteboard: " + whiteboardId + "  User: " + userId);
+                log.info("Create whiteboard [" + whiteboardId + "] and new user [" + userId + "]");
 
                 String json = new JSONObject().put("whiteboard", whiteboardId).put("user", userId).toString();
-
-                //TODO use logging
-                System.out.println("Send json: " + json);
-
                 HttpUtils.sendJson(httpExchange, json);
-            } catch (JSONException | IOException e) {
-                e.printStackTrace();
+            } catch (JSONException | IllegalStateException exception) {
+                HttpUtils.sendBadRequestCode(httpExchange);
             } finally {
                 httpExchange.close();
             }
@@ -72,27 +69,21 @@ public class Server {
     private class JoinWhiteboardHandler implements HttpHandler {
 
         @Override
-        public void handle(HttpExchange httpExchange) {
+        public void handle(HttpExchange httpExchange) throws IOException {
+            log.debug("Start handle request by JoinWhiteboardHandler");
+
             try {
                 Map<String, String> queryParams = HttpUtils.getQueryParams(httpExchange.getRequestURI());
 
-                //TODO handle if whiteboard param is absent. Send 400 code as response
-                String whiteboardId = queryParams.getOrDefault(WHITEBOARD_PARAM, "");
-
-                //TODO handle if whiteboardId is incorrect. Send 400 code as response
+                String whiteboardId = HttpUtils.getParam(queryParams, "whiteboard");
                 String userId = whiteboardService.joinToWhiteboard(whiteboardId);
 
-                //TODO use logging
-                System.out.println("Join to whiteboard: " + whiteboardId + "  User: " + userId);
+                log.info("Join new user [" + userId + "] to whiteboard [" + whiteboardId + "]");
 
                 String json = new JSONObject().put("user", userId).toString();
-
-                //TODO use logging
-                System.out.println("Send json: " + json);
-
                 HttpUtils.sendJson(httpExchange, json);
-            } catch (JSONException | IOException e) {
-                e.printStackTrace();
+            } catch (JSONException | IllegalStateException exception) {
+                HttpUtils.sendBadRequestCode(httpExchange);
             } finally {
                 httpExchange.close();
             }
@@ -102,30 +93,23 @@ public class Server {
     private class GetShapesHandler implements HttpHandler {
 
         @Override
-        public void handle(HttpExchange httpExchange) {
-            //TODO use logging
-            System.out.println("Start GetShapesHandler");
+        public void handle(HttpExchange httpExchange) throws IOException {
+            log.debug("Start handle request by GetShapesHandler");
 
             try {
                 Map<String, String> queryParams = HttpUtils.getQueryParams(httpExchange.getRequestURI());
 
-                //TODO handle if whiteboard/user param is absent. Send 400 code as response
-                String whiteboardId = queryParams.getOrDefault(WHITEBOARD_PARAM, "");
-                String userId = queryParams.getOrDefault(USER_PARAM, "");
-                Instant after = Instant.parse(queryParams.getOrDefault(AFTER_PARAM, ""));
+                String whiteboardId = HttpUtils.getParam(queryParams, "whiteboard");
+                String userId = HttpUtils.getParam(queryParams, "user");
+                Instant after = Instant.parse(HttpUtils.getParam(queryParams, "after"));
 
-                //TODO use logging
-                System.out.println("Get shapes of whiteboard: " + whiteboardId + "  User: " + userId);
+                log.debug("Get shapes of whiteboard [" + whiteboardId + "] by user [" + userId + "]");
 
                 List<PaintShape> paintShapes = whiteboardService.getShapes(whiteboardId, userId, after);
                 String json = JsonConverter.toJsonPaintShapes(paintShapes).toString();
-
-                //TODO use logging
-                System.out.println("Send json: " + json);
-
                 HttpUtils.sendJson(httpExchange, json);
-            } catch (JSONException | IOException e) {
-                e.printStackTrace();
+            } catch (JSONException | IllegalStateException exception) {
+                HttpUtils.sendBadRequestCode(httpExchange);
             } finally {
                 httpExchange.close();
             }
@@ -135,38 +119,25 @@ public class Server {
     private class AddShapesHandler implements HttpHandler {
 
         @Override
-        public void handle(HttpExchange httpExchange) {
-            //TODO use logging
-            System.out.println("Start AddShapesHandler");
+        public void handle(HttpExchange httpExchange) throws IOException {
+            log.debug("Start handle request by AddShapesHandler");
 
             try {
                 Map<String, String> queryParams = HttpUtils.getQueryParams(httpExchange.getRequestURI());
 
-                //TODO handle if whiteboard/user param is absent. Send 400 code as response
-                String whiteboardId = queryParams.getOrDefault(WHITEBOARD_PARAM, "");
-                String userId = queryParams.getOrDefault(USER_PARAM, "");
+                String whiteboardId = HttpUtils.getParam(queryParams, "whiteboard");
+                String userId = HttpUtils.getParam(queryParams, "user");
 
-                //todo check that this whiteboard contains this user (in WhiteboardDao).
-
-                //TODO use logging
-                System.out.println("Add shapes to whiteboard: " + whiteboardId + "  User: " + userId);
+                log.debug("Add shapes to whiteboard [" + whiteboardId + "] by user [" + userId + "]");
 
                 String jsonString = IOUtils.toString(httpExchange.getRequestBody(), CHARSET);
-
-                //TODO use logging
-                System.out.println("Get json: " + jsonString);
-
                 JSONObject jsonObject = new JSONObject(jsonString);
                 List<PaintShape> paintShapes = JsonConverter.fromJsonPaintShapes(jsonObject);
                 whiteboardService.addShapes(whiteboardId, userId, paintShapes);
 
-                //TODO maybe using not 'sendJson' method
-                HttpUtils.sendJson(httpExchange, "");
-
-                //TODO use logging
-                System.out.println("Send empty json");
-            } catch (JSONException | IOException e) {
-                e.printStackTrace();
+                HttpUtils.sendJson(httpExchange, "{}");
+            } catch (JSONException | IllegalStateException exception) {
+                HttpUtils.sendBadRequestCode(httpExchange);
             } finally {
                 httpExchange.close();
             }

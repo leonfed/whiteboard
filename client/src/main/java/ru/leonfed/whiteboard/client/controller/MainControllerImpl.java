@@ -11,15 +11,9 @@ import java.time.Instant;
 import java.util.List;
 
 public class MainControllerImpl implements MainController {
-    private static final long OVERLAP_SECONDS = 60;
-
     private final PaintShapesStorage paintShapesStorage;
     private final View view;
     private final WhiteboardHttpClient whiteboardHttpClient;
-
-    //todo move it to storage
-    private Instant postTimestamp = Instant.MIN;
-    private Instant getTimestamp = Instant.MIN;
 
     public MainControllerImpl(View view,
                               PaintShapesStorage paintShapesStorage,
@@ -28,6 +22,18 @@ public class MainControllerImpl implements MainController {
         this.view = view;
         this.whiteboardHttpClient = whiteboardHttpClient;
         view.setAddShapeListener(shape -> addShape(shape, true));
+    }
+
+    @Override
+    public void start() throws IOException, JSONException {
+        whiteboardHttpClient.createWhiteboard();
+        view.setVisible(true);
+    }
+
+    @Override
+    public void start(String whiteboardId) throws IOException, JSONException {
+        whiteboardHttpClient.joinToWhiteboard(whiteboardId);
+        view.setVisible(true);
     }
 
     @Override
@@ -47,18 +53,14 @@ public class MainControllerImpl implements MainController {
     }
 
     @Override
-    public void postShapesToServer() throws IOException, JSONException {
-        Instant executeTime = Instant.now();
-        List<PaintShape> shapes = paintShapesStorage.getOwnShapes(postTimestamp);
+    public void postShapesToServer(Instant after) throws IOException, JSONException {
+        List<PaintShape> shapes = paintShapesStorage.getOwnShapes(after);
         whiteboardHttpClient.postShapes(shapes);
-        postTimestamp = executeTime.minusSeconds(OVERLAP_SECONDS);
     }
 
     @Override
-    public void getShapesFromServer() throws IOException, JSONException {
-        Instant executeTime = Instant.now();
-        List<PaintShape> shapes = whiteboardHttpClient.getShapes(getTimestamp);
+    public void getShapesFromServer(Instant after) throws IOException, JSONException {
+        List<PaintShape> shapes = whiteboardHttpClient.getShapes(after);
         addShapes(shapes, false);
-        getTimestamp = executeTime.minusSeconds(OVERLAP_SECONDS * 5);
     }
 }

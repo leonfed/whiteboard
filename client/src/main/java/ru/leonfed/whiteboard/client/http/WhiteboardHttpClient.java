@@ -11,9 +11,9 @@ public interface WhiteboardHttpClient {
 
     void createWhiteboard() throws IOException, JSONException;
 
-    void joinToWhiteboard(String whiteboardId) throws JSONException, IOException;
+    void joinToWhiteboard(String whiteboardId) throws IOException, JSONException;
 
-    List<PaintShape> getShapes(Instant after) throws JSONException, IOException;
+    List<PaintShape> getShapes(Instant after) throws IOException, JSONException;
 
     void postShapes(List<PaintShape> shapes) throws IOException, JSONException;
 }

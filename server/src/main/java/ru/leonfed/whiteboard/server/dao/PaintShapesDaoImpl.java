@@ -31,8 +31,7 @@ public class PaintShapesDaoImpl implements PaintShapesDao {
     public List<PaintShape> getShapes(String whiteboardId, String excludeUserId, Instant after) {
         return shapes.get(whiteboardId).values()
                 .stream()
-                .filter(richPaintShape -> !richPaintShape.getCreatorUserId().equals(excludeUserId) &&
-                        richPaintShape.getCreateTime().isAfter(after))
+                .filter(shape -> !shape.getCreatorUserId().equals(excludeUserId) && shape.getCreateTime().isAfter(after))
                 .map(RichPaintShape::getPaintShape)
                 .collect(Collectors.toList());
     }

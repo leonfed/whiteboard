@@ -2,8 +2,11 @@ package ru.leonfed.whiteboard.client.tasks;
 
 import org.json.JSONException;
 import ru.leonfed.whiteboard.client.controller.MainController;
+import ru.leonfed.whiteboard.core.logging.Logger;
+import ru.leonfed.whiteboard.core.logging.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Instant;
 
 /**
  * It does two steps
@@ -11,6 +14,13 @@ import java.io.IOException;
  * 2) Get server's new shapes from other users and store it
  */
 public class SyncingShapesTask implements Runnable {
+    private static final long OVERLAP_SECONDS_POST = 60;
+    private static final long OVERLAP_SECONDS_GET = 300;
+
+    static final Logger log = LoggerFactory.logger(SyncingShapesTask.class);
+
+    private Instant postTimestamp = Instant.MIN;
+    private Instant getTimestamp = Instant.MIN;
     private final MainController controller;
 
     public SyncingShapesTask(MainController controller) {
@@ -19,14 +29,15 @@ public class SyncingShapesTask implements Runnable {
 
     @Override
     public void run() {
-        //todo use logging
-        System.out.println("Run SyncingShapesTask");
-
         try {
-            controller.postShapesToServer();
-            controller.getShapesFromServer();
+            Instant executeTime = Instant.now();
+            controller.postShapesToServer(postTimestamp);
+            controller.getShapesFromServer(getTimestamp);
+
+            postTimestamp = executeTime.minusSeconds(OVERLAP_SECONDS_POST);
+            getTimestamp = executeTime.minusSeconds(OVERLAP_SECONDS_GET);
         } catch (IOException | JSONException exception) {
-            exception.printStackTrace();
+            log.error("Exception of running SyncingShapesTask", exception);
         }
     }
 }

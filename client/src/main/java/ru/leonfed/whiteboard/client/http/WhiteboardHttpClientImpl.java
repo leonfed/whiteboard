@@ -1,15 +1,18 @@
 package ru.leonfed.whiteboard.client.http;
 
+import org.apache.commons.lang.RandomStringUtils;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
+import ru.leonfed.whiteboard.core.logging.Logger;
+import ru.leonfed.whiteboard.core.logging.LoggerFactory;
 import ru.leonfed.whiteboard.core.model.JsonConverter;
 import ru.leonfed.whiteboard.core.model.PaintShape;
 
@@ -19,101 +22,94 @@ import java.util.List;
 
 public class WhiteboardHttpClientImpl implements WhiteboardHttpClient {
 
-    private final String defaultUrl;
+    static final Logger log = LoggerFactory.logger(WhiteboardHttpClientImpl.class);
+
+    private final String createWhiteboardUrl;
+    private final String joinWhiteboardUrl;
+    private final String getShapesUrl;
+    private final String postShapesUrl;
 
     private String whiteboardId;
     private String userId;
 
-    public WhiteboardHttpClientImpl(String defaultUrl) {
-        this.defaultUrl = defaultUrl;
+    public WhiteboardHttpClientImpl(String mainUrl) {
+        createWhiteboardUrl = mainUrl + "/whiteboard/create";
+        joinWhiteboardUrl = mainUrl + "/whiteboard/join";
+        getShapesUrl = mainUrl + "/shapes/get";
+        postShapesUrl = mainUrl + "/shapes/add";
+    }
+
+    private String sendRequest(HttpRequestBase request) throws IOException {
+        try (CloseableHttpClient client = HttpClients.createDefault()) {
+            String requestId = RandomStringUtils.random(8, true, true);
+            log.debug("[" + requestId + "] Send request: " + request.toString());
+
+            HttpResponse response = client.execute(request);
+            log.debug("[" + requestId + "] Get response: " + response.getStatusLine().toString());
+
+            if (response.getStatusLine().getStatusCode() != 200) {
+                throw new IOException("Response code is not OK");
+            }
+
+            return EntityUtils.toString(response.getEntity());
+        }
     }
 
     @Override
     public void createWhiteboard() throws IOException, JSONException {
-        try (CloseableHttpClient client = HttpClients.createDefault()) {
-            HttpGet request = new HttpGet(defaultUrl + "/whiteboard/create");
-            HttpResponse response = client.execute(request);
-            String json = EntityUtils.toString(response.getEntity());
+        log.debug("Creating whiteboard");
 
-            //TODO use logging
-            System.out.println("Get json: " + json);
+        HttpGet request = new HttpGet(createWhiteboardUrl);
+        String response = sendRequest(request);
+        JSONObject jsonObject = new JSONObject(response);
 
-            JSONObject jsonObject = new JSONObject(json);
-            whiteboardId = jsonObject.getString("whiteboard");
-            userId = jsonObject.getString("user");
+        whiteboardId = jsonObject.getString("whiteboard");
+        userId = jsonObject.getString("user");
 
-            //todo use logging
-            System.out.println("Create whiteboard: " + whiteboardId + "   User:" + userId);
-        }
+        log.info("Create whiteboard: " + whiteboardId);
+        log.info("Get user id: " + userId);
     }
 
     @Override
-    public void joinToWhiteboard(String whiteboardId) throws JSONException, IOException {
-        try (CloseableHttpClient client = HttpClients.createDefault()) {
-            this.whiteboardId = whiteboardId;
+    public void joinToWhiteboard(String whiteboardId) throws IOException, JSONException {
+        log.debug("Join to whiteboard");
 
-            //todo maybe using smart adding query params
-            HttpGet request = new HttpGet(defaultUrl + "/whiteboard/join?whiteboard=" + whiteboardId);
-            HttpResponse response = client.execute(request);
-            String json = EntityUtils.toString(response.getEntity());
+        this.whiteboardId = whiteboardId;
+        HttpGet request = new HttpGet(joinWhiteboardUrl + "?whiteboard=" + whiteboardId);
 
-            //TODO use logging
-            System.out.println("Get json: " + json);
+        String response = sendRequest(request);
+        JSONObject jsonObject = new JSONObject(response);
 
-            JSONObject jsonObject = new JSONObject(json);
-            userId = jsonObject.getString("user");
+        userId = jsonObject.getString("user");
 
-            //todo use logging
-            System.out.println("Join to whiteboard: " + whiteboardId + "   User:" + userId);
-        }
+        log.info("Join to whiteboard: " + whiteboardId);
+        log.info("Get user id: " + userId);
     }
 
     @Override
-    public List<PaintShape> getShapes(Instant after) throws JSONException, IOException {
-        try (CloseableHttpClient client = HttpClients.createDefault()) {
-            //TODO use logging
-            System.out.println("Start getting shapes");
-            //todo maybe using smart adding query params
-            HttpGet request = new HttpGet(defaultUrl +
-                    "/shapes/get?whiteboard=" + whiteboardId +
-                    "&user=" + userId +
-                    "&after=" + after.toString()
-            );
-            HttpResponse response = client.execute(request);
-            String json = EntityUtils.toString(response.getEntity());
+    public List<PaintShape> getShapes(Instant after) throws IOException, JSONException {
+        log.debug("Get shapes");
 
-            //TODO use logging
-            System.out.println("Get json: " + json);
+        HttpGet request = new HttpGet(getShapesUrl +
+                "?whiteboard=" + whiteboardId +
+                "&user=" + userId +
+                "&after=" + after.toString()
+        );
 
-            JSONObject jsonObject = new JSONObject(json);
-            return JsonConverter.fromJsonPaintShapes(jsonObject);
-        }
+        String response = sendRequest(request);
+        JSONObject jsonObject = new JSONObject(response);
+        return JsonConverter.fromJsonPaintShapes(jsonObject);
     }
 
     @Override
     public void postShapes(List<PaintShape> shapes) throws IOException, JSONException {
-        try (CloseableHttpClient client = HttpClients.createDefault()) {
-            //TODO use logging
-            System.out.println("Start posting shapes");
+        log.debug("Post shapes");
 
-            HttpPost request = new HttpPost(defaultUrl +
-                    "/shapes/add?whiteboard=" + whiteboardId +
-                    "&user=" + userId
-            );
+        HttpPost request = new HttpPost(postShapesUrl + "?whiteboard=" + whiteboardId + "&user=" + userId);
+        String json = JsonConverter.toJsonPaintShapes(shapes).toString();
+        request.setEntity(new StringEntity(json));
+        request.setHeader("Content-type", "application/json");
 
-            String json = JsonConverter.toJsonPaintShapes(shapes).toString();
-
-            //TODO use logging
-            System.out.println("Send json: " + json);
-
-            request.setEntity(new StringEntity(json));
-            request.setHeader("Content-type", "application/json");
-            HttpResponse response = client.execute(request);
-
-            //todo write more smart handing codes
-            if (response.getStatusLine().getStatusCode() != 200) {
-                throw new IOException("Response code is not 200");
-            }
-        }
+        sendRequest(request);
     }
 }

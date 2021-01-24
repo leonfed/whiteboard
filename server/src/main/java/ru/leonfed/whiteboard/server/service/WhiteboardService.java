@@ -14,8 +14,9 @@ public interface WhiteboardService {
 
     /**
      * @return user id
+     * @throws IllegalStateException if whiteboard with that id does not exist
      */
-    String joinToWhiteboard(String whiteboardId);
+    String joinToWhiteboard(String whiteboardId) throws IllegalStateException ;
 
 
     /**

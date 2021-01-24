@@ -25,7 +25,7 @@ public class WhiteboardServiceImpl implements WhiteboardService {
     }
 
     @Override
-    public String joinToWhiteboard(String whiteboardId) {
+    public String joinToWhiteboard(String whiteboardId) throws IllegalStateException {
         return whiteboardDao.joinWhiteboard(whiteboardId);
     }
 

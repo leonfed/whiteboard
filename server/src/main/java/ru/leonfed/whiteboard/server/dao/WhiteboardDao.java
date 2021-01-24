@@ -4,5 +4,5 @@ public interface WhiteboardDao {
 
     String createWhiteboard();
 
-    String joinWhiteboard(String whiteboardId);
+    String joinWhiteboard(String whiteboardId) throws IllegalStateException ;
 }

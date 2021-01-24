@@ -1,6 +1,7 @@
 package ru.leonfed.whiteboard.client.view;
 
 import ru.leonfed.whiteboard.core.model.PaintShape;
+import ru.leonfed.whiteboard.core.model.ViewConverter;
 
 import javax.swing.*;
 import java.awt.*;
@@ -16,7 +17,6 @@ public class ViewImpl implements View {
     private final PaintJComponent jComponent = new PaintJComponent();
     private final JFrame paint = new JFrame();
 
-    //TODO add logging
     private Consumer<PaintShape> addShapeListener = paintShape -> {
     };
 
@@ -77,9 +77,9 @@ public class ViewImpl implements View {
         }
 
         public void mouseDragged(MouseEvent e) {
-            if (pressedFlag) {
+            if (pressedFlag && previousPoint != null) {
                 Line2D line = new Line2D.Double(previousPoint, e.getPoint());
-                addShapeListener.accept(ShapeConverter.convertLine(line));
+                addShapeListener.accept(ViewConverter.convertLine(line));
                 previousPoint = e.getPoint();
             }
         }

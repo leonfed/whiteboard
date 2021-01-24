@@ -1,6 +1,10 @@
 package ru.leonfed.whiteboard.server;
 
 import org.apache.commons.lang.StringUtils;
+import ru.leonfed.whiteboard.core.logging.Logger;
+import ru.leonfed.whiteboard.core.logging.LoggerConfig;
+import ru.leonfed.whiteboard.core.logging.LoggerConfig.LoggerLevel;
+import ru.leonfed.whiteboard.core.logging.LoggerFactory;
 import ru.leonfed.whiteboard.server.dao.PaintShapesDao;
 import ru.leonfed.whiteboard.server.dao.PaintShapesDaoImpl;
 import ru.leonfed.whiteboard.server.dao.WhiteboardDao;
@@ -15,7 +19,13 @@ public class ServerInitializer {
     static final String DEFAULT_HOSTNAME = "localhost";
     static final int DEFAULT_PORT = 8080;
 
+    static final LoggerLevel LOGGER_LEVEL = LoggerLevel.INFO;
+
+    static final Logger log = LoggerFactory.logger(ServerInitializer.class);
+
     public static void main(String[] args) {
+        LoggerConfig.setLoggerLevel(LOGGER_LEVEL);
+
         String hostname = DEFAULT_HOSTNAME;
         int port = DEFAULT_PORT;
 
@@ -27,7 +37,7 @@ public class ServerInitializer {
             port = Integer.parseInt(args[1]);
         }
 
-        System.out.println("Start server with hostname=[" + hostname + "] and port=[" + port + "]...");
+        log.info("Start server with hostname=[" + hostname + "] and port=[" + port + "]...");
 
         try {
             WhiteboardDao whiteboardDao = new WhiteboardDaoImpl();
@@ -36,8 +46,7 @@ public class ServerInitializer {
             Server server = new Server(hostname, port, whiteboardService);
             server.start();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Exception of initializing server", e);
         }
-
     }
 }
