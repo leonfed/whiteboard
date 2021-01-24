@@ -14,7 +14,7 @@ public class ModelGenerators {
         return new Point(random.nextDouble(), random.nextDouble());
     }
 
-    public static PaintShape generatePaintShape() {
+    public static PaintLine generatePaintLine() {
         return new PaintLine(UUID.randomUUID().toString(), generatePoint(), generatePoint());
     }
 

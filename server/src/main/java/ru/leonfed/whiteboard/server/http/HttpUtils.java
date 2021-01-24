@@ -7,7 +7,6 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import ru.leonfed.whiteboard.core.logging.Logger;
 import ru.leonfed.whiteboard.core.logging.LoggerFactory;
-import ru.leonfed.whiteboard.server.ServerInitializer;
 
 import java.io.IOException;
 import java.net.URI;

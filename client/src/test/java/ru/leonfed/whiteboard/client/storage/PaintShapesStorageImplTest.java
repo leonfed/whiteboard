@@ -21,8 +21,8 @@ public class PaintShapesStorageImplTest {
 
     @Test
     public void getAllShapes() {
-        PaintShape shape1 = ModelGenerators.generatePaintShape();
-        PaintShape shape2 = ModelGenerators.generatePaintShape();
+        PaintShape shape1 = ModelGenerators.generatePaintLine();
+        PaintShape shape2 = ModelGenerators.generatePaintLine();
         paintShapesStorage.addShape(shape1, true);
         paintShapesStorage.addShape(shape2, false);
 

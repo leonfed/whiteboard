@@ -5,6 +5,7 @@ import org.json.JSONObject;
 
 import java.awt.*;
 import java.awt.geom.Line2D;
+import java.util.Objects;
 
 public class PaintLine extends PaintShape {
     private final Point point1;
@@ -36,5 +37,13 @@ public class PaintLine extends PaintShape {
                 .put("id", id)
                 .put("point1", point1.toJson())
                 .put("point2", point2.toJson());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PaintLine paintLine = (PaintLine) o;
+        return id.equals(paintLine.id) && Objects.equals(point1, paintLine.point1) && Objects.equals(point2, paintLine.point2);
     }
 }
