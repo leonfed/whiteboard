@@ -19,6 +19,7 @@ import ru.leonfed.whiteboard.core.model.PaintShape;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
+import java.util.function.Supplier;
 
 public class WhiteboardHttpClientImpl implements WhiteboardHttpClient {
 
@@ -32,6 +33,8 @@ public class WhiteboardHttpClientImpl implements WhiteboardHttpClient {
     private String whiteboardId;
     private String userId;
 
+    private Supplier<CloseableHttpClient> httpClientSupplier = HttpClients::createDefault;
+
     public WhiteboardHttpClientImpl(String mainUrl) {
         createWhiteboardUrl = mainUrl + "/whiteboard/create";
         joinWhiteboardUrl = mainUrl + "/whiteboard/join";
@@ -40,7 +43,7 @@ public class WhiteboardHttpClientImpl implements WhiteboardHttpClient {
     }
 
     private String sendRequest(HttpRequestBase request) throws IOException {
-        try (CloseableHttpClient client = HttpClients.createDefault()) {
+        try (CloseableHttpClient client = httpClientSupplier.get()) {
             String requestId = RandomStringUtils.random(8, true, true);
             log.debug("[" + requestId + "] Send request: " + request.toString());
 
@@ -111,5 +114,17 @@ public class WhiteboardHttpClientImpl implements WhiteboardHttpClient {
         request.setHeader("Content-type", "application/json");
 
         sendRequest(request);
+    }
+
+    public void setHttpClientSupplier(Supplier<CloseableHttpClient> httpClientSupplier) {
+        this.httpClientSupplier = httpClientSupplier;
+    }
+
+    public String getWhiteboardId() {
+        return whiteboardId;
+    }
+
+    public String getUserId() {
+        return userId;
     }
 }

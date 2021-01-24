@@ -25,7 +25,6 @@ public class JsonConverterTest {
         JsonConverter.fromJsonPaintShape(jsonObject);
     }
 
-
     @Test
     public void convertLines() throws JSONException {
         PaintShape paintLine1 = ModelGenerators.generatePaintLine();
